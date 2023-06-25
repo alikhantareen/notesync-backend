@@ -34,8 +34,9 @@ app.get("/whiteboard/:id", async (req, res) => {
 app.get("/myfolder/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const folderTitle = await Folder.findById(id);
     const notes = await Note.find({ folder: id });
-    return res.status(200).json(notes);
+    return res.status(200).json({notes, folderTitle});
   } catch (error) {
     console.log(error);
   }
