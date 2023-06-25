@@ -21,16 +21,58 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/whiteboard", async (req, res) => {
+app.get("/whiteboard/:id", async (req, res) => {
   try {
-    const folders = await Folder.find({});
+    const { id } = req.params;
+    const folders = await Folder.find({ user: id });
     return res.status(200).json(folders);
   } catch (error) {
     console.log(error);
   }
 });
 
-app.post("/whiteboard", async (req, res) => {
+app.get("/myfolder/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notes = await Note.find({ folder: id });
+    return res.status(200).json(notes);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+app.get("/myfolder/mynote/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const note = await Note.findById(id);
+    return res.status(200).json(note);
+  } catch (error) {
+    return res.status(404).json({ error: "note not found" });
+  }
+});
+
+app.post("/myfolder/addnote/:id", async (req, res) => {
+  const token = req.body.token;
+  let flag = false;
+  if (token) {
+    flag = jwt.verify(token, process.env.JWT_SECRET);
+  }
+  if (flag) {
+    try {
+      const note = new Note({ ...req.body });
+      const newNote = await note.save();
+      return res.status(200).json({ newNote });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ error: "Note could not be created at this time." });
+    }
+  } else {
+    return res.status(500).json({ error: "Unauthorized user request" });
+  }
+});
+
+app.post("/whiteboard/:id", async (req, res) => {
   const token = req.body.token;
   let flag = false;
   if (token) {
@@ -46,8 +88,7 @@ app.post("/whiteboard", async (req, res) => {
         .status(500)
         .json({ error: "Folder could not be created at this time." });
     }
-  }
-  else {
+  } else {
     return res.status(500).json({ error: "Unauthorized user request" });
   }
 });
