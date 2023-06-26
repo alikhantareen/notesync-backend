@@ -21,6 +21,8 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+
+//api to get user's folders
 app.get("/whiteboard/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -31,6 +33,7 @@ app.get("/whiteboard/:id", async (req, res) => {
   }
 });
 
+//api to get notes of a specific folder
 app.get("/myfolder/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -42,6 +45,30 @@ app.get("/myfolder/:id", async (req, res) => {
   }
 });
 
+//api to delete a note
+app.delete("/note/:id", async (req, res) => {
+  try {
+    const {id} = req.params;
+    const note = await Note.deleteOne({_id: id});
+    return res.status(200).json({success: "note deleted"})
+  } catch (error) {
+    return res.status(500).json({error: "could not delete"})
+  }
+})
+
+
+//api to delete a folder
+app.delete("/folder/:id", async (req, res) => {
+  try {
+    const {id} = req.params;
+    const folder = await Folder.deleteOne({_id: id});
+    return res.status(200).json({success: "folder deleted"})
+  } catch (error) {
+    return res.status(500).json({error: "could not delete"})
+  }
+})
+
+//api to return a specific note
 app.get("/myfolder/mynote/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -52,6 +79,7 @@ app.get("/myfolder/mynote/:id", async (req, res) => {
   }
 });
 
+//api to add a note
 app.post("/myfolder/addnote/:id", async (req, res) => {
   const token = req.body.token;
   let flag = false;
@@ -73,6 +101,7 @@ app.post("/myfolder/addnote/:id", async (req, res) => {
   }
 });
 
+//api to create a folder
 app.post("/whiteboard/:id", async (req, res) => {
   const token = req.body.token;
   let flag = false;
@@ -88,6 +117,31 @@ app.post("/whiteboard/:id", async (req, res) => {
       return res
         .status(500)
         .json({ error: "Folder could not be created at this time." });
+    }
+  } else {
+    return res.status(500).json({ error: "Unauthorized user request" });
+  }
+});
+
+//api to update a note
+app.put("/update-note/:id", async (req, res) => {
+  const token = req.body.token;
+  let flag = false;
+  if (token) {
+    flag = jwt.verify(token, process.env.JWT_SECRET);
+  }
+  if(flag) {
+    try {
+      const { id } = req.params;
+      const filter = { _id: id };
+      const update = req.body;
+      await Note.findOneAndUpdate(filter, update);
+      const updateNote = await Note.findById(id);
+      return res.status(200).json(updateNote);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ error: "Note can not be updated at this time." });
     }
   } else {
     return res.status(500).json({ error: "Unauthorized user request" });
