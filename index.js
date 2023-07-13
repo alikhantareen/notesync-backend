@@ -13,7 +13,7 @@ const PORT = 5050;
 
 //Database connection
 (async () => {
-  await mongoose.connect("mongodb://127.0.0.1:27017/mynotes");
+  await mongoose.connect("mongodb+srv://alikhantareen:Pakistan786@cluster0.po7h8av.mongodb.net/?retryWrites=true&w=majority");
   console.log("MongoDB connected");
 })();
 
